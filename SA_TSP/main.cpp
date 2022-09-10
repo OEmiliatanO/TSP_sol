@@ -4,13 +4,15 @@
 #include <random>
 #include <vector>
 #include <cmath>
+#include <thread>
+#include <future>
 
 using int64 = long long;
+using city_t = std::tuple<int, int64, int64>;
+using cities_t = std::vector<city_t>;
+using ans_t = std::pair<double, cities_t>;
 
-std::random_device rd;
-std::mt19937 mt(rd());
-std::uniform_real_distribution<double> unid(0.0, 1.0);
-
+/*
 struct city
 {
 	int n;
@@ -18,14 +20,20 @@ struct city
 	city(int _n, const int64& _x, const int64& _y): n(_n), x(_x), y(_y) {}
 	city(int&& _n, int64&& _x, int64&& _y): n(std::move(_n)), x(std::move(_x)), y(std::move(_y)) {}
 	city(): n(0), x(0), y(0) {}
-};
+};*/
 
-double dist(const city& c1, const city& c2)
+
+std::random_device rd;
+std::mt19937 mt(rd());
+std::uniform_real_distribution<double> unid(0.0, 1.0);
+
+double dist(const city_t& c1, const city_t& c2)
 {
-	return sqrt((c1.x - c2.x) * (c1.x - c2.x) + (c1.y - c2.y) * (c1.y - c2.y));
+	const int64& x1 = std::get<1>(c1), x2 = std::get<1>(c2), y1 = std::get<2>(c1), y2 = std::get<2>(c2);
+	return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
 }
 
-double E(const std::vector<city>& vec)
+double E(const cities_t& vec)
 {
 	double res = 0;
 	for (auto it = vec.begin() + 1; it != vec.end(); ++it)
@@ -33,56 +41,71 @@ double E(const std::vector<city>& vec)
 	return res + dist(*vec.rbegin(), *vec.begin());
 }
 
-std::vector<city> rdChange(const std::vector<city>& vec)
+cities_t rdChange(const cities_t& vec)
 {
-	std::vector<city> res(vec);
+	cities_t res(vec);
 	iter_swap(res.begin() + res.size() * unid(mt), res.begin() + res.size() * unid(mt));
 	return res;
 }
 
-constexpr int MAXIter = (int)1e7;
+constexpr int MAXIter = (int)1e3;
 constexpr double Rt = 0.97;
-constexpr double EndT = 1e-5;
+constexpr double EndT = 1e-4;
 constexpr double InitT = 1e3;
-std::pair<double, std::vector<city>> SA(const std::vector<city>& cities)
+constexpr double Thre = 1 / InitT;
+ans_t SA(const cities_t& cities)
 {
-	int counter = 0;
-	std::vector<city> current(cities);
-	std::vector<city> nex;
-	double minDis = std::numeric_limits<double>::infinity();
-	double T = InitT;
-	auto condjmp = [&](const double dt) { return unid(mt) < exp(dt / T); };
-	while (counter < MAXIter and T > EndT)
+	cities_t current(cities), best(cities), nex;
+	double minE = std::numeric_limits<double>::infinity(), T = InitT;
+	auto willSwap = [&](const double dt) {
+		//return unid(mt) < Thre * T; 
+		return unid(mt) < exp(-dt / T); 
+	};
+	while (T > EndT)
 	{
-		nex = std::move(rdChange(current));
-		double Enex = E(nex);
-		double Ecurr = E(current);
-		double dt = Enex - Ecurr;
-		if (dt < 0 or condjmp(dt))
+		for(int _ = 0; _ < MAXIter; ++_)
 		{
-			current.swap(nex);
-			minDis = Enex;
+			nex = std::move(rdChange(current));
+			auto Enex = E(nex), Ecurr = E(current);
+			auto dt = Enex - Ecurr;
+			if (dt < 0 or willSwap(dt))
+			{
+				current.swap(nex);
+				if (minE > Enex)
+				{
+					minE = Enex;
+					best.swap(nex);
+				}
+			}
 		}
 		T *= Rt;
-		++counter;
 	}
-	return make_pair(minDis, current);
+	return make_pair(minE, current);
 }
 
 int main()
 {
 	int n, x, y;
-	std::vector<city> cities;
+ 	cities_t cities;
 	while(std::cin >> n >> x >> y)
 		cities.emplace_back(n, x, y);
 
-	std::pair<double, std::vector<city>> ans;
-	ans = std::move(SA(cities));
+	std::vector<ans_t> ansPool;
+	std::vector< std::future<ans_t> > threadPool(5);
 
-	std::cout << "the minimal distance is " << ans.first << '\n';
+	for (auto& it : threadPool)
+		it = async(SA, cities);
+	for (auto& it : threadPool)
+		ansPool.emplace_back(it.get());
+
+	sort(ansPool.begin(), ansPool.end());
+
+	const ans_t& ans = *ansPool.begin();
+	std::cout << "the minimal length is " << ans.first << '\n';
+	std::cout << "and the path is (";
 	for (auto& it : ans.second)
-		std::cout << it.n << " ";
-	std::cout << (*ans.second.begin()).n << '\n';
+		std::cout << std::get<0>(it) << " -> ";
+	std::cout << std::get<0>(*ans.second.begin()) << ')' << '\n';
 	
 	return 0;
 }
