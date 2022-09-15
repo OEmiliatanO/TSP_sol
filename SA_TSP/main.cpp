@@ -51,15 +51,15 @@ cities_t rdChange(const cities_t& vec)
 constexpr int MAXIter = (int)1e3;
 constexpr double Rt = 0.97;
 constexpr double EndT = 1e-4;
-constexpr double InitT = 1e3;
+constexpr double InitT = 1e4;
 constexpr double Thre = 1 / InitT;
 ans_t SA(const cities_t& cities)
 {
 	cities_t current(cities), best(cities), nex;
 	double minE = std::numeric_limits<double>::infinity(), T = InitT;
 	auto willSwap = [&](const double dt) {
-		//return unid(mt) < Thre * T; 
-		return unid(mt) < exp(-dt / T); 
+		return unid(mt) < Thre * T; 
+		//return unid(mt) < exp(-dt / T); 
 	};
 	while (T > EndT)
 	{

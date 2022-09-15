@@ -17,12 +17,12 @@ double dist(city& c1, city& c2)
 	return sqrt((x1 - x2)*(x1 - x2) + (y1 - y2)*(y1 - y2));
 }
 
-int main()
+int main(int argc, char **argv)
 {
 	fstream ans;
 	fstream data;
-	ans.open("eil51.ans");
-	data.open("eil51.tsp");
+	ans.open(argv[1]);
+	data.open(argv[2]);
 
 	int n, x, y, prev;
 	double dis = 0;
