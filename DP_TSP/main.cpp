@@ -101,12 +101,5 @@ int main()
 	if (ans.second.size())
 		std::cout << std::get<0>(ans.second[0]) << '\n';
 
-	auto dist = [](const city_t &a, const city_t &b) { int64 x1 = std::get<1>(a), x2 = std::get<1>(b), y1 = std::get<2>(a), y2 = std::get<2>(b); return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)); };
-	double va = 0;
-	auto pre = ans.second.begin();
-	for (auto it = ans.second.begin() + 1; it != ans.second.end(); pre = it++)
-		va += dist(*it, *pre);
-	va += dist(*pre, *ans.second.begin());
-	std::cout << va << '\n';
 	return 0;
 }
