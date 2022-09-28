@@ -2,14 +2,14 @@
 #include <cstring>
 #include <algorithm>
 #include <random>
-#include <vector>
+#include <list>
 #include <cmath>
 #include <thread>
 #include <future>
 
 using int64 = long long;
 using city_t = std::tuple<int, int64, int64>;
-using cities_t = std::vector<city_t>;
+using cities_t = std::list<city_t>;
 using ans_t = std::pair<double, cities_t>;
 
 /*
@@ -36,15 +36,22 @@ double dist(const city_t& c1, const city_t& c2)
 double E(const cities_t& vec)
 {
 	double res = 0;
-	for (auto it = vec.begin() + 1; it != vec.end(); ++it)
-		res += dist(*it, *(it - 1));
+	size_t i = 0;
+	for (auto it = vec.begin(), nex = std::next(vec.begin(), 1); i < vec.size() - 1; ++i)
+	{
+		res += dist(*it, *nex);
+		it = nex;
+		nex = std::next(it, 1);
+	}
 	return res + dist(*vec.rbegin(), *vec.begin());
 }
 
 cities_t rdChange(const cities_t& vec)
 {
 	cities_t res(vec);
-	iter_swap(res.begin() + res.size() * unid(mt), res.begin() + res.size() * unid(mt));
+	size_t offset1 = res.size() * unid(mt), offset2 = res.size() * unid(mt);
+	if (offset1 > offset2) std::swap(offset1, offset2);
+	std::reverse(std::next(res.begin(), offset1), std::next(res.begin(), offset2));
 	return res;
 }
 
