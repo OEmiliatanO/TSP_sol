@@ -1,0 +1,8 @@
+1 13 33
+4 32 24
+3 79 45
+2 57 81
+5 24 78
+1 13 33
+
+the possible minimal length is 194.153
