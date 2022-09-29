@@ -73,10 +73,10 @@ int main()
 
 	std::sort(cities.begin(), cities.end());
 	ans_t ans = BF(cities);
-	std::cout << '\n';
-	std::cout << "the minimal distance is " << ans.first << '\n';
 	for (auto& cy : ans.second)
-		std::cout << std::get<0>(cy) << " -> ";
-	std::cout << std::get<0>(ans.second[0]) << '\n';
+		std::cout << std::get<0>(cy) << " " << std::get<1>(cy) << " " << std::get<2>(cy) << '\n';
+	if (ans.second.size())
+		std::cout << std::get<0>(ans.second[0]) << " " << std::get<1>(ans.second[0]) << " " << std::get<2>(ans.second[0]) << '\n';
+	std::cout << '\n' << "the minimal length is " << ans.first << '\n';
 	return 0;
 }

@@ -21,18 +21,18 @@ struct city
 
 ans_t GE(cities_t& cities)
 {
-	int cnt = 0;
 	cities_t ans_ct;
 	double ans = 0;
-	int n = cities.size();
+	auto n = cities.size();
 	auto dist = [](const city_t &a, const city_t &b) { int64 x1 = std::get<1>(a), x2 = std::get<1>(b), y1 = std::get<2>(a), y2 = std::get<2>(b); return sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2)); };
 	ans_ct.emplace_back(cities[0]);
 	while (ans_ct.size() < n)
 	{
 		std::sort(cities.begin() + ans_ct.size(), cities.end(), [&](const city_t& c1, const city_t& c2) { 
-				int64 x0 = std::get<1>(*ans_ct.rbegin()), x1 = std::get<1>(c1), x2 = std::get<1>(c2), y0 = std::get<1>(*ans_ct.rbegin()), y1 = std::get<2>(c2), y2 = std::get<2>(c2); 
+				int64 x0 = std::get<1>(*ans_ct.rbegin()), x1 = std::get<1>(c1), x2 = std::get<1>(c2), y0 = std::get<2>(*ans_ct.rbegin()), y1 = std::get<2>(c1), y2 = std::get<2>(c2); 
 				return (x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1) < (x0 - x2) * (x0 - x2) + (y0 - y2) * (y0 - y2);
 			});
+
 		//std::cerr << "the nearest city to " << std::get<0>(*ans_ct.rbegin()) << " is " << std::get<0>(*(cities.begin() + ans_ct.size())) << '\n';
 		//std::cerr << "the distance is " << dist(*ans_ct.rbegin(), *(cities.begin() + ans_ct.size())) << '\n';
 		ans += dist(*ans_ct.rbegin(), *(cities.begin() + ans_ct.size()));
@@ -52,11 +52,12 @@ int main()
 
 	std::sort(cities.begin(), cities.end());
 	ans_t ans = GE(cities);
-	std::cout << "the possible minimal distance is " << ans.first << '\n';
 	for (auto& cy : ans.second)
-		std::cout << std::get<0>(cy) << " -> ";
+		std::cout << std::get<0>(cy) << " " << std::get<1>(cy) << " " << std::get<2>(cy) << '\n';
 	if (ans.second.size())
-		std::cout << std::get<0>(ans.second[0]) << '\n';
+		std::cout << std::get<0>(ans.second[0]) << " " << std::get<1>(ans.second[0]) << " " << std::get<2>(ans.second[0]) << '\n';
+
+	std::cout << '\n' << "the possible minimal length is " << ans.first << '\n';
 
 	return 0;
 }

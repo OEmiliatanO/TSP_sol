@@ -108,11 +108,11 @@ int main()
 	sort(ansPool.begin(), ansPool.end());
 
 	const ans_t& ans = *ansPool.begin();
-	std::cout << "the minimal length is " << ans.first << '\n';
-	std::cout << "and the path is (";
 	for (auto& it : ans.second)
-		std::cout << std::get<0>(it) << " -> ";
-	std::cout << std::get<0>(*ans.second.begin()) << ')' << '\n';
-	
+		std::cout << std::get<0>(it) << " " << std::get<1>(it) << " " << std::get<2>(it) << '\n';
+	if (ans.second.size())
+		std::cout << std::get<0>(*ans.second.begin()) << " " << std::get<1>(*ans.second.begin()) << " " << std::get<2>(*ans.second.begin()) << '\n';
+
+	std::cout << '\n' << "the minimal length is " << ans.first << '\n';
 	return 0;
 }
