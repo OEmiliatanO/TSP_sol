@@ -6,6 +6,7 @@
 #include <cmath>
 #include <thread>
 #include <future>
+#include <fstream>
 
 using int64 = long long;
 using city_t = std::tuple<int, int64, int64>;
@@ -101,12 +102,20 @@ int main()
 	sort(ansPool.begin(), ansPool.end());
 
 	const ans_t& ans = *ansPool.begin();
-	for (auto& it : ans.second)
-		std::cout << std::get<0>(it) << " " << std::get<1>(it) << " " << std::get<2>(it) << '\n';
-	if (ans.second.size())
-		std::cout << std::get<0>(ans.second[0]) << " " << std::get<1>(ans.second[0]) << " " << std::get<2>(ans.second[0]) << '\n';
 
-	std::cout << '\n' << "the minimal length is " << ans.first << '\n';
+	std::fstream plottxt;
+	plottxt.open("plot.txt", std::ios::out);
 	
+	std::cout << "the minimal length is " << ans.first << '\n';
+	for (auto& it : ans.second)
+	{
+		std::cout << std::get<0>(it) << '\n';
+		plottxt << std::get<0>(it) << " " << std::get<1>(it) << " " << std::get<2>(it) << '\n';
+	}
+	if (ans.second.size())
+		plottxt << std::get<0>(ans.second[0]) << " " << std::get<1>(ans.second[0]) << " " << std::get<2>(ans.second[0]) << '\n';
+	
+	plottxt.close();
+
 	return 0;
 }

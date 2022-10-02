@@ -8,8 +8,7 @@ dep: main.cpp
 	$(CC) $(FLAG) $(OPT) -c main.cpp
 all: main.o
 	$(CC) -o main main.o
-plot: all
-	cat "testfile/readfile.txt" | ./main > output.txt
+plot: plot.txt
 	gnuplot plot.gp
 clean:main.o
 	-rm -rf main.o

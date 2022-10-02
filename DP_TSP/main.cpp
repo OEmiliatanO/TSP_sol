@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 #include <cmath>
+#include <fstream>
 
 using int64 = long long;
 using city_t = std::tuple<int, int64, int64>;
@@ -94,11 +95,18 @@ int main()
 
 	std::sort(cities.begin(), cities.end());
 	ans_t ans = DP_solve(cities);
-	for (auto& cy : ans.second)
-		std::cout << std::get<0>(cy) << " " << std::get<1>(cy) << " " << std::get<2>(cy) << '\n';
-	if (ans.second.size())
-		std::cout << std::get<0>(ans.second[0]) << " " << std::get<1>(ans.second[0]) << " " << std::get<2>(ans.second[0]) << '\n';
-	std::cout << '\n' << "the minimal length is " << ans.first << '\n';
 
+	std::fstream plottxt;
+	plottxt.open("plot.txt", std::ios::out);
+	
+	std::cout << "the minimal length is " << ans.first << '\n';
+	for (auto& cy : ans.second)
+	{
+		std::cout << std::get<0>(cy) << '\n';
+		plottxt << std::get<0>(cy) << " " << std::get<1>(cy) << " " << std::get<2>(cy) << '\n';
+	}
+	if (ans.second.size())
+		plottxt << std::get<0>(ans.second[0]) << " " << std::get<1>(ans.second[0]) << " " << std::get<2>(ans.second[0]) << '\n';
+	plottxt.close();
 	return 0;
 }

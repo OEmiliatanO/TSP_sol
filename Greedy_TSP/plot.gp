@@ -6,4 +6,4 @@ set autoscale
 set offsets 1,1,1,1
 set size ratio -1
 
-plot "output.txt" using ($2):($3) with linespoint title ' '
+plot "plot.txt" using ($2):($3) with linespoint title ' '
