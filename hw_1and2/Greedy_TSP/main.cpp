@@ -32,7 +32,7 @@ ans_t GE(cities_t& cities)
 	{
 		std::sort(cities.begin() + ans_ct.size(), cities.end(), [&](const city_t& c1, const city_t& c2) { 
 				int64 x0 = std::get<1>(*ans_ct.rbegin()), x1 = std::get<1>(c1), x2 = std::get<1>(c2), y0 = std::get<2>(*ans_ct.rbegin()), y1 = std::get<2>(c1), y2 = std::get<2>(c2); 
-				return (x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1) < (x0 - x2) * (x0 - x2) + (y0 - y2) * (y0 - y2);
+				return ((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1)) < ((x0 - x2) * (x0 - x2) + (y0 - y2) * (y0 - y2));
 			});
 #ifdef DEBUGing
 		std::cerr << "the nearest city to " << std::get<0>(*ans_ct.rbegin()) << " is " << std::get<0>(*(cities.begin() + ans_ct.size())) << '\n';
