@@ -21,87 +21,98 @@ struct city
 	city(): n(0), x(0), y(0) {}
 };*/
 
-constexpr int MAX_ANT_N = 1000;
+constexpr int MAX_ANT_N = 700;
 constexpr int MAXN = 100;
 constexpr double alpha = 1;
-constexpr double beta = 2;
-constexpr double Q = 1;
+constexpr double beta = 2.5;
+constexpr double Q = 100;
 
 std::vector<std::vector<double>> d;
 std::vector<std::vector<double>> phero;
 std::vector<std::vector<double>> dphero;
-long long vis[MAX_ANT_N];
 
 std::random_device rd; 
 std::mt19937 mt(rd());
 
-int choose_city(vector<pair<int, double>>& prob)
+int choose_city(std::vector<std::pair<int, double>>& prob)
 {
-	if (prob.size <= 0)
+	if (prob.size() <= 0)
 	{
-		fprintf(stderr, "error in choose_city\nprob.size <= 0\n");
+		std::cerr << "error in choose_city\nprob.size <= 0\n";
 		exit(0);
 	}
-	if (prob.size == 1)
+	if (prob.size() == 1)
 		return prob[0].first;
-	
-	for (int i = 1; i < prob.size(); ++i)
-		prob[i].second += prob[i-1].second;
 
-	std::uniform_real_distribution<double> unid(0.0, prob.back->second);
-	double p = unid(mt);
-	for (int i = 0; i < prob.size(); ++i)
+	double psum = 0;
+	for (size_t i = 0; i < prob.size(); ++i)
+		psum += prob[i].second;
+
+	std::uniform_real_distribution<double> unid(0.0, psum);
+	double p = unid(mt), choose = 0;
+	for (size_t i = 0; i < prob.size(); ++i)
 	{
-		if (p <= prob[i].second)
+		choose += prob[i].second;
+		if (p <= choose)
 			return prob[i].first;
 	}
-	fprintf(stderr, "error in choose_city\nchoose nothing\n");
+	std::cerr << "error in choose_city\nchoose nothing\n";
 	exit(0);
 }
 
-void generateSol(int n, int ant_n, ans_t& best_sol)
+double dist(city_t& a, city_t& b)
+{
+	return sqrt( (std::get<1>(a) - std::get<1>(b))*(std::get<1>(a) - std::get<1>(b)) + (std::get<2>(a) - std::get<2>(b))*(std::get<2>(a) - std::get<2>(b)));
+}
+void generateSol(int n, int ant_n, cities_t& cities, ans_t& best_sol)
 {
 	std::vector<std::pair<int, double>> prob;
-	ant_t ant_sol; // std::pair<double, cities_t>
+	std::pair<double, std::vector<int>> ant_sol;	
 	for (int k = 0; k < ant_n; ++k)
 	{
+		ant_sol.first = 0;
 		ant_sol.second.clear();
 		ant_sol.second.emplace_back(1);
-		vis[k] = 0b10;
-		prob.clear();
-		while (ant_sol[k].second.size < n)
+		long long vis = 2;
+
+		while (ant_sol.second.size() < (size_t)n)
 		{
-			double tmp = 0;
-			int from = *ant_sol.second.back();
-			/*
-			for (int j = 2; j <= n; ++j)
-			{
-				if ((1<<j) & vis[k]) continue;
-				tmp += pow(ph[i][j], alpha) + pow(1/d[i][j], beta);
-				prob.emplace_back(j, 0);
-			}
-			*/
+			int from = ant_sol.second.back();
+			prob.clear();
 
 			for (int j = 2; j <= n; ++j)
 			{
-				int& j = to.first;
-				if ((1<<j) & vis[k]) continue;
-				//to.second = (pow(ph[i][j], alpha) + pow(1/d[i][j], beta)) / tmp;
-				prob.emplace_back(j, (pow(ph[from][j], alpha) + pow(1/d[from][j], beta)));
+				if ((1LL<<j) & vis) continue;
+				prob.emplace_back(j, (pow(phero[from][j], alpha) + pow(1/d[from][j], beta)));
 			}
-			ant_sol.second.emplace_back(choose_city(prob));
-			ant_sol.first += dist(i, *ant_sol.second.back());
-			dphero[from][*ant_sol.second.back()] += Q/ant_sol.first;
+			int to = choose_city(prob);
+			ant_sol.second.emplace_back(to);
+			vis |= (1LL<<to);
+			ant_sol.first += dist(cities[from - 1], cities[to - 1]);
+			dphero[from][to] += Q/ant_sol.first;
 		}
-		best_sol = std::min(ant_sol, best_sol);
+		ant_sol.first += dist(cities[0],cities[ant_sol.second.back() - 1]);
+		ant_sol.second.emplace_back(1);
+
+		if (best_sol.first > ant_sol.first)
+		{
+			best_sol.first = ant_sol.first;
+			best_sol.second.resize(n+1);
+			int i = 0;
+			for (auto& city : ant_sol.second)
+				best_sol.second[i++] = cities[city - 1];
+		}
 	}
 }
-void pheroUpdate(int n, double p = 0.5)
+void pheroUpdate(int n, double p = 0.1)
 {
 	for (int i = 1; i <= n; ++i)
 	{
-		for (int j = 1; j <= n; ++i)
-			phero[i][j] = p * phero[i][j] + dhero[i][j];
+		for (int j = 1; j <= n; ++j)
+		{
+			phero[i][j] = p * phero[i][j] + dphero[i][j];
+			dphero[i][j] = 0;
+		}
 	}
 }
 
@@ -110,11 +121,14 @@ ans_t ACO(cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_N)
 	ans_t best_sol{std::numeric_limits<double>::infinity(), cities_t{}};
 	for (int i = 0; i < n; ++i)
 	{
+		std::cerr << "i = " << i << '\n';
 		for (int j = 0; j < t; ++j)
 		{
-			generateSol(cities.size(), ant_n, best_sol);
+			generateSol(cities.size(), ant_n, cities, best_sol);
 			pheroUpdate(cities.size());
+			std::cerr << '\r' << std::fixed << (double) j*100/t << '%';
 		}
+		std::cerr << '\n';
 	}
 	return best_sol;
 }
@@ -140,19 +154,15 @@ int main()
 	while(std::cin >> n >> x >> y)
 		cities.emplace_back(n, x, y);
 
-	init(n);
+	init(cities.size());
 	
 	std::sort(cities.begin(), cities.end());
-	for (int i = 0; i < cities.size(); ++i)
-	{
-		for (int j = 0; j < cities.size(); ++j)
-		{
-			city_t& a = cities[i];
-			city_t& b = cities[j];
-			d[i+1][j+1] = sqrt( (std::get<1>(a) - std::get<1>(b))*(std::get<1>(a) - std::get<1>(b)) + (std::get<2>(a) - std::get<2>(b))*(std::get<2>(a) - std::get<2>(b)))
-		}
-	}
-	ans_t ans = ACO(cities, n, t);
+
+	for (size_t i = 0; i < cities.size(); ++i)
+		for (size_t j = 0; j < cities.size(); ++j)
+			d[i+1][j+1] = dist(cities[i], cities[j]);
+
+	ans_t ans = ACO(cities, 30, 1000);
 
 	std::fstream plottxt;
 	plottxt.open("plot.txt", std::ios::out);
