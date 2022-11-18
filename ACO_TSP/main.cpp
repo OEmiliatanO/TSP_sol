@@ -21,15 +21,20 @@ struct city
 	city(): n(0), x(0), y(0) {}
 };*/
 
-constexpr int MAX_ANT_N = 700;
+constexpr int MAX_ANT_N = 51; // 700
 constexpr int MAXN = 100;
-constexpr double alpha = 1;
-constexpr double beta = 2.5;
+constexpr double alpha = 1.0; // 1
+constexpr double beta = 5;    // 3
 constexpr double Q = 100;
 
+/*
 std::vector<std::vector<double>> d;
 std::vector<std::vector<double>> phero;
 std::vector<std::vector<double>> dphero;
+*/
+double d[MAXN + 1][MAXN + 1];
+double phero[MAXN + 1][MAXN + 1];
+double dphero[MAXN + 1][MAXN + 1];
 
 std::random_device rd; 
 std::mt19937 mt(rd());
@@ -83,7 +88,7 @@ void generateSol(int n, int ant_n, cities_t& cities, ans_t& best_sol)
 			for (int j = 2; j <= n; ++j)
 			{
 				if ((1LL<<j) & vis) continue;
-				prob.emplace_back(j, (pow(phero[from][j], alpha) + pow(1/d[from][j], beta)));
+				prob.emplace_back(j, (pow(phero[from][j], alpha) * pow(1/d[from][j], beta)));
 			}
 			int to = choose_city(prob);
 			ant_sol.second.emplace_back(to);
@@ -92,6 +97,7 @@ void generateSol(int n, int ant_n, cities_t& cities, ans_t& best_sol)
 			dphero[from][to] += Q/ant_sol.first;
 		}
 		ant_sol.first += dist(cities[0],cities[ant_sol.second.back() - 1]);
+		dphero[ant_sol.second.back()][1] += Q/ant_sol.first;
 		ant_sol.second.emplace_back(1);
 
 		if (best_sol.first > ant_sol.first)
@@ -104,7 +110,7 @@ void generateSol(int n, int ant_n, cities_t& cities, ans_t& best_sol)
 		}
 	}
 }
-void pheroUpdate(int n, double p = 0.1)
+void pheroUpdate(int n, double p = 0.5) // 0.1
 {
 	for (int i = 1; i <= n; ++i)
 	{
@@ -116,35 +122,29 @@ void pheroUpdate(int n, double p = 0.1)
 	}
 }
 
+void init(int n)
+{
+	memset(dphero, 0, sizeof(dphero));
+	for (int i = 0; i <= n; ++i)
+		for (int j = 0; j <= n; ++j)
+			phero[i][j] = 1.0;
+}
+
 ans_t ACO(cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_N)
 {
 	ans_t best_sol{std::numeric_limits<double>::infinity(), cities_t{}};
 	for (int i = 0; i < n; ++i)
 	{
-		std::cerr << "i = " << i << '\n';
+		init(cities.size());
 		for (int j = 0; j < t; ++j)
 		{
 			generateSol(cities.size(), ant_n, cities, best_sol);
 			pheroUpdate(cities.size());
-			std::cerr << '\r' << std::fixed << (double) j*100/t << '%';
+			std::cerr << '\r' << std::fixed << (double) (j+i*t+1)*100/(t*n) << '%';
 		}
-		std::cerr << '\n';
 	}
+	std::cerr << '\n';
 	return best_sol;
-}
-
-void init(int n)
-{
-	phero.resize(n+1);
-	dphero.resize(n+1);
-	d.resize(n+1);
-	for (int i = 0; i <= n; ++i)
-	{
-		phero[i].resize(n+1);
-		std::fill(phero[i].begin(), phero[i].end(), 1);
-		dphero[i].resize(n+1);
-		d[i].resize(n+1);
-	}
 }
 
 int main()
@@ -154,10 +154,9 @@ int main()
 	while(std::cin >> n >> x >> y)
 		cities.emplace_back(n, x, y);
 
-	init(cities.size());
-	
 	std::sort(cities.begin(), cities.end());
 
+	memset(d, 0, sizeof(d));
 	for (size_t i = 0; i < cities.size(); ++i)
 		for (size_t j = 0; j < cities.size(); ++j)
 			d[i+1][j+1] = dist(cities[i], cities[j]);
