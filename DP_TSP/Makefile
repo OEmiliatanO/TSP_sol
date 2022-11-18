@@ -1,5 +1,5 @@
 CC:=g++
-FLAG:=-Wall -Wextra
+FLAG:=-Wall -Wextra -mcmodel=medium
 OPT:=-O3
 
 debug: main.cpp

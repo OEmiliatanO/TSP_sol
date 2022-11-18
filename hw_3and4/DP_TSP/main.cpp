@@ -18,11 +18,11 @@ struct city
 	city(int _n, const int64& _x, const int64& _y): n(_n), x(_x), y(_y) {}
 	city(int&& _n, int64&& _x, int64&& _y): n(std::move(_n)), x(std::move(_x)), y(std::move(_y)) {}
 	city(): n(0), x(0), y(0) {}
-};*/
+};
+*/
 
 int64 tot = 1;
 constexpr int maxn = 26;
-//double DP[(1 << maxn)][maxn]{};
 std::vector<std::vector<double>> DP;
 std::pair<int, int> from[(1 << maxn)][maxn];
 
@@ -53,9 +53,7 @@ ans_t DP_solve(cities_t& cities)
 					double distkj = dist(cities[k], cities[j]);
 					if (DP[(1 << j) | i][j] > DP[i][k] + distkj)
 					{
-						//std::cerr << "DP[" << ((1 << j) | i) << "]" << "[" << j << "] > DP[" << i << "]" << "[" << k << "] + " << distkj << '\n';
 						from[(1 << j) | i][j] = std::make_pair(i, k);
-						//fprintf(stderr, "from[%d][%d] = (%d, %d)\n", (1 << j) | i, j, i, k);
 						DP[(1 << j) | i][j] = DP[i][k] + distkj;
 					}
 				}
@@ -73,10 +71,8 @@ ans_t DP_solve(cities_t& cities)
 
 	while (idx.second != -1)
 	{
-		//std::cerr << "idx.first = " << idx.first << ' ' << "idx.second = " << idx.second << '\n';
 		ans_ct.insert(ans_ct.begin(), {std::get<0>(cities[idx.second]), std::get<1>(cities[idx.second]), std::get<2>(cities[idx.second])});
 		idx = from[idx.first][idx.second];
-		//std::cerr << "nex.first = " << idx.first << ' ' << "nex.second = " << idx.second << '\n';
 	}
 	return std::make_pair(ans, ans_ct);
 }
@@ -85,11 +81,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
 {
 	int n, x, y;
  	cities_t cities;
-	//std::fstream fin;
-	//fin.open(argv[1], std::fstream::in);
 	while(std::cin >> n >> x >> y)
 		cities.emplace_back(n, x, y);
-	//fin.close();
 
 	if (n >= 26)
 	{
