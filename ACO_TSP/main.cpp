@@ -27,11 +27,6 @@ constexpr double alpha = 1.0; // 1
 constexpr double beta = 5;    // 3
 constexpr double Q = 100;
 
-/*
-std::vector<std::vector<double>> d;
-std::vector<std::vector<double>> phero;
-std::vector<std::vector<double>> dphero;
-*/
 double d[MAXN + 1][MAXN + 1];
 double phero[MAXN + 1][MAXN + 1];
 double dphero[MAXN + 1][MAXN + 1];

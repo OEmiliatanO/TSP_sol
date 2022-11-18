@@ -81,25 +81,21 @@ ans_t DP_solve(cities_t& cities)
 	return std::make_pair(ans, ans_ct);
 }
 
-int main([[maybe_unused]]int argc, char **argv)
+int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
 {
 	int n, x, y;
  	cities_t cities;
-	std::fstream fin;
-	std::cout << "n=" << n;
-	fin.open(argv[1], std::fstream::in);
-	std::cout << "n=" << n;
-	while(fin >> n >> x >> y)
+	//std::fstream fin;
+	//fin.open(argv[1], std::fstream::in);
+	while(std::cin >> n >> x >> y)
 		cities.emplace_back(n, x, y);
-	fin.close();
+	//fin.close();
 
-	std::cout << "n=" << n;
 	if (n >= 26)
 	{
 		std::cout << "the data is too big." << '\n';
 		return 0;
 	}
-	std::cout << "n=" << n;
 	DP.resize(1 << n);
 	for (auto& it : DP)
 		it.resize(n);
