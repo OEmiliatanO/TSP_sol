@@ -22,9 +22,9 @@ struct city
 };*/
 
 constexpr int MAX_ANT_N = 51; // 700
-constexpr int MAXN = 100;
-constexpr double alpha = 1.0; // 1
-constexpr double beta = 5;    // 3
+constexpr int MAXN = 63;
+constexpr double alpha = 0.2; // 1
+constexpr double beta = 4;    // 3
 constexpr double Q = 100;
 
 double d[MAXN + 1][MAXN + 1];
@@ -66,23 +66,30 @@ double dist(city_t& a, city_t& b)
 }
 void generateSol(int n, int ant_n, cities_t& cities, ans_t& best_sol)
 {
+	std::uniform_int_distribution<> unid(1, n);
 	std::vector<std::pair<int, double>> prob;
 	std::pair<double, std::vector<int>> ant_sol;	
 	for (int k = 0; k < ant_n; ++k)
 	{
 		ant_sol.first = 0;
 		ant_sol.second.clear();
-		ant_sol.second.emplace_back(1);
-		long long vis = 2;
+		ant_sol.second.emplace_back(unid(mt));
+		long long vis = (1LL << ant_sol.second.back());
 
 		while (ant_sol.second.size() < (size_t)n)
 		{
 			int from = ant_sol.second.back();
 			prob.clear();
-
-			for (int j = 2; j <= n; ++j)
+			double psum = 0;
+			for (int j = 1; j <= n; ++j)
 			{
 				if ((1LL<<j) & vis) continue;
+				psum += pow(phero[from][j], alpha) * pow(1/d[from][j], beta);
+			}
+			for (int j = 1; j <= n; ++j)
+			{
+				if ((1LL<<j) & vis) continue;
+				//prob.emplace_back(j, (pow(phero[from][j], alpha) * pow(1/d[from][j], beta))/psum);
 				prob.emplace_back(j, (pow(phero[from][j], alpha) * pow(1/d[from][j], beta)));
 			}
 			int to = choose_city(prob);
@@ -91,21 +98,20 @@ void generateSol(int n, int ant_n, cities_t& cities, ans_t& best_sol)
 			ant_sol.first += dist(cities[from - 1], cities[to - 1]);
 			dphero[from][to] += Q/ant_sol.first;
 		}
-		ant_sol.first += dist(cities[0],cities[ant_sol.second.back() - 1]);
-		dphero[ant_sol.second.back()][1] += Q/ant_sol.first;
-		ant_sol.second.emplace_back(1);
+		ant_sol.first += dist(cities[ant_sol.second.front() - 1],cities[ant_sol.second.back() - 1]);
+		dphero[ant_sol.second.back()][ant_sol.second.front() - 1] += Q/ant_sol.first;
 
 		if (best_sol.first > ant_sol.first)
 		{
 			best_sol.first = ant_sol.first;
-			best_sol.second.resize(n+1);
+			best_sol.second.resize(n);
 			int i = 0;
 			for (auto& city : ant_sol.second)
 				best_sol.second[i++] = cities[city - 1];
 		}
 	}
 }
-void pheroUpdate(int n, double p = 0.5) // 0.1
+void pheroUpdate(int n, double p = 0.1) // 0.1
 {
 	for (int i = 1; i <= n; ++i)
 	{
