@@ -25,7 +25,7 @@ constexpr int MAXN = 64; // city
 
 constexpr int MAX_ANT_N = 50;  // 50
 constexpr double alpha = 0.8;  // 0.8 1
-constexpr double beta = 4;     // 4   1
+constexpr double beta = 4.4;     // 4   1
 constexpr double Q = 100;      // 100
 constexpr double P = 0.8;      // 0.8
 
@@ -128,7 +128,7 @@ void init(int n)
 	memset(dphero, 0, sizeof(dphero));
 	for (int i = 0; i <= n; ++i)
 		for (int j = 0; j <= n; ++j)
-			phero[i][j] = 0.0001;
+			phero[i][j] = 1.0;
 }
 
 ans_t ACO(cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_N)

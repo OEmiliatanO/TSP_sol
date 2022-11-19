@@ -83,7 +83,8 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
  	cities_t cities;
 	while(std::cin >> n >> x >> y)
 		cities.emplace_back(n, x, y);
-
+	
+	n = cities.size();
 	if (n >= 26)
 	{
 		std::cout << "the data is too big." << '\n';

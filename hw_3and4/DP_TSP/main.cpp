@@ -37,11 +37,12 @@ ans_t DP_solve(cities_t& cities)
 	for (int i = 0; i < tot; ++i)
 		for (int j = 0; j < n; ++j)
 			DP[i][j] = std::numeric_limits<double>::infinity();
+
 	DP[1][0] = 0;
 	from[1][0] = std::make_pair(-1, -1);
 
 	std::cerr.precision(4);
-	for (int i = 1; i < (1 << n); ++i)
+	for (int i = 1; i < tot; ++i)
 	{
 		for (int j = 1; j < n; ++j)
 		{
@@ -59,6 +60,7 @@ ans_t DP_solve(cities_t& cities)
 				}
 		}
 	}
+
 	std::pair<int, int> idx;
 	for (int i = 0; i < n; ++i)
 	{
@@ -84,6 +86,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
 	while(std::cin >> n >> x >> y)
 		cities.emplace_back(n, x, y);
 
+	n = cities.size();
 	if (n >= 26)
 	{
 		std::cout << "the data is too big." << '\n';
@@ -94,6 +97,7 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
 		it.resize(n);
 
 	std::sort(cities.begin(), cities.end());
+	
 	ans_t ans = DP_solve(cities);
 
 	std::fstream plottxt;
@@ -108,5 +112,6 @@ int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
 	if (ans.second.size())
 		plottxt << std::get<0>(ans.second[0]) << " " << std::get<1>(ans.second[0]) << " " << std::get<2>(ans.second[0]) << '\n';
 	plottxt.close();
+	
 	return 0;
 }

@@ -5,6 +5,8 @@
 #include <cmath>
 #include <random>
 #include <fstream>
+#include <list>
+#include <cassert>
 
 using int64 = long long;
 using city_t = std::tuple<int, int64, int64>;
@@ -71,7 +73,7 @@ void generateSol(int n, int ant_n, cities_t& cities, ans_t& best_sol)
 {
 	std::uniform_int_distribution<int> unid(1, n);
 	std::vector<std::pair<int, double>> prob;
-	std::pair<double, std::vector<int>> ant_sol;
+	std::pair<double, std::list<int>> ant_sol;
 	for (int k = 0; k < ant_n; ++k)
 	{
 		ant_sol.first = 0;
@@ -88,18 +90,72 @@ void generateSol(int n, int ant_n, cities_t& cities, ans_t& best_sol)
 			for (int j = 1; j <= n; ++j)
 			{
 				if ((1LL<<j) & vis) continue;
-				//prob.emplace_back(j, (pow(phero[from][j], alpha) * pow(1/d[from][j], beta))/psum);
 				if (from == j) continue;
 				prob.emplace_back(j, (pow(phero[from][j], alpha) * pow(1/d[from][j], beta)));
 			}
 			int to = choose_city(prob);
 			ant_sol.second.emplace_back(to);
-			vis |= (1LL<<to);
 			ant_sol.first += d[from][to];
-			dphero[from][to] += Q/ant_sol.first;
+			vis |= (1LL<<to);
 		}
 		ant_sol.first += d[ant_sol.second.back()][ant_sol.second.front()];
-		dphero[ant_sol.second.back()][ant_sol.second.front()] += Q/ant_sol.first;
+		for (auto it = ant_sol.second.begin(); it != ant_sol.second.end(); ++it)
+		{
+			//std::cout << *it << " ";
+		}
+
+		// 2-opt
+		std::pair<size_t, size_t> swap_pair{0, 0};
+		double opt_len = ant_sol.first;
+		for (size_t i = 0; i < ant_sol.second.size(); ++i)
+			for (size_t j = i+1; j < ant_sol.second.size(); ++j)
+			{
+				double new_len = ant_sol.first;
+				if (i == 0 && j == ant_sol.second.size() - 1) continue;
+				if (i > 0)
+				{
+					new_len -= d[*std::next(ant_sol.second.begin(), i-1)][*std::next(ant_sol.second.begin(), i)];
+					new_len += d[*std::next(ant_sol.second.begin(), i-1)][*std::next(ant_sol.second.begin(), j)];
+				}
+				else
+				{
+					assert(i == 0);
+					new_len -= d[ant_sol.second.back()][*std::next(ant_sol.second.begin(), i)];
+					new_len += d[ant_sol.second.back()][*std::next(ant_sol.second.begin(), j)];
+				}
+
+				if (j+1 < ant_sol.second.size())
+				{
+					new_len -= d[*std::next(ant_sol.second.begin(), j)][*std::next(ant_sol.second.begin(), j+1)];
+					new_len += d[*std::next(ant_sol.second.begin(), i)][*std::next(ant_sol.second.begin(), j+1)];
+				}
+				else
+				{
+					assert(j == ant_sol.second.size()-1);
+					new_len -= d[*std::next(ant_sol.second.begin(), j)][ant_sol.second.front()];
+					new_len += d[*std::next(ant_sol.second.begin(), i)][ant_sol.second.front()];
+				}
+				if (new_len < opt_len)
+				{
+					swap_pair = std::make_pair(i, j);
+					opt_len = new_len;
+				}
+			}
+		ant_sol.first = opt_len;
+		
+		if (swap_pair.first < swap_pair.second)
+			std::reverse(std::next(ant_sol.second.begin(), swap_pair.first), std::next(ant_sol.second.begin(), swap_pair.second+1));
+		
+		double L = 0;
+		for (auto it = ant_sol.second.begin(); std::next(it, 1) != ant_sol.second.end(); ++it)
+		{
+			L += d[*it][*std::next(it, 1)];
+			dphero[*it][*std::next(it, 1)] += Q/L;
+		}
+		L += d[ant_sol.second.back()][ant_sol.second.front()];
+		dphero[ant_sol.second.back()][ant_sol.second.front()] += Q/L;
+		
+		assert(fabs(L - ant_sol.first) <= 1e-5);
 
 		if (best_sol.first > ant_sol.first)
 		{
@@ -128,7 +184,7 @@ void init(int n)
 	memset(dphero, 0, sizeof(dphero));
 	for (int i = 0; i <= n; ++i)
 		for (int j = 0; j <= n; ++j)
-			phero[i][j] = 0.0001;
+			phero[i][j] = 1.0;
 }
 
 ans_t ACO(cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_N)
@@ -162,13 +218,17 @@ int main()
 		cities.emplace_back(n, x, y);
 	
 	std::sort(cities.begin(), cities.end());
-	//for (auto& it:cities)
-	//	std::cerr << "n=" << std::get<0>(it) << '\n';
 
 	memset(d, 0, sizeof(d));
-	for (size_t i = 1; i <= n; ++i)
-		for (size_t j = 1; j <= n; ++j)
+	for (size_t i = 1; i <= cities.size()-1; ++i)
+	{
+		for (size_t j = 1; j <= cities.size()-1; ++j)
+		{
 			d[i][j] = dist(cities[i], cities[j]);
+			//std::cout << d[i][j] << ' ';
+		}
+		//std::cout << '\n';
+	}
 
 	ans_t ans = ACO(cities, 30, 1000);
 
