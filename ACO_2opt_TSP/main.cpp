@@ -25,7 +25,7 @@ struct city
 
 constexpr int MAXN = 64; // city
 
-constexpr int MAX_ANT_N = 30;  // 50
+constexpr int MAX_ANT_N = 50;  // 50
 constexpr double alpha = 1;  // 0.8 1
 constexpr double beta = 2;     // 4   1
 constexpr double Q = 100;      // 100
@@ -98,11 +98,10 @@ void generateSol(int n, int ant_n, cities_t& cities, ans_t& best_sol)
 			ant_sol.first += d[from][to];
 			vis |= (1LL<<to);
 		}
+
 		ant_sol.first += d[ant_sol.second.back()][ant_sol.second.front()];
-		for (auto it = ant_sol.second.begin(); it != ant_sol.second.end(); ++it)
-		{
-			//std::cout << *it << " ";
-		}
+		
+		//for (auto it = ant_sol.second.begin(); it != ant_sol.second.end(); ++it);
 
 		// 2-opt
 		std::pair<size_t, size_t> swap_pair{0, 0};
@@ -146,17 +145,10 @@ void generateSol(int n, int ant_n, cities_t& cities, ans_t& best_sol)
 		if (swap_pair.first < swap_pair.second)
 			std::reverse(std::next(ant_sol.second.begin(), swap_pair.first), std::next(ant_sol.second.begin(), swap_pair.second+1));
 		
-		double L = 0;
 		for (auto it = ant_sol.second.begin(); std::next(it, 1) != ant_sol.second.end(); ++it)
-		{
-			L += d[*it][*std::next(it, 1)];
-			dphero[*it][*std::next(it, 1)] += Q/L;
-		}
-		L += d[ant_sol.second.back()][ant_sol.second.front()];
-		dphero[ant_sol.second.back()][ant_sol.second.front()] += Q/L;
+			dphero[*it][*std::next(it, 1)] += Q/ant_sol.first;
+		dphero[ant_sol.second.back()][ant_sol.second.front()] += Q/ant_sol.first;
 		
-		assert(fabs(L - ant_sol.first) <= 1e-5);
-
 		if (best_sol.first > ant_sol.first)
 		{
 			best_sol.first = ant_sol.first;
