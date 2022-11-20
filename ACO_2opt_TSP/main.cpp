@@ -190,12 +190,12 @@ ans_t ACO(cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_N)
 		{
 			generateSol(cities.size() - 1, ant_n, cities, best_sol);
 			pheroUpdate(cities.size() - 1);
-			std::cout << '\r' << std::fixed << (double) (j+i*t+1)*100/(t*n) << '%';
+			std::cerr << '\r' << std::fixed << (double) (j+i*t+1)*100/(t*n) << '%';
 		}
 		avg += best_sol.first;
 	}
 	avg /= 30;
-	std::cout << '\n';
+	std::cerr << '\n';
 	std::cout << "avg = " << avg << '\n';
 	return best_sol;
 }
