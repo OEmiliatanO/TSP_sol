@@ -25,9 +25,9 @@ struct city
 
 constexpr int MAXN = 64; // city
 
-constexpr int MAX_ANT_N = 50;  // 50
-constexpr double alpha = 0.8;  // 0.8 1
-constexpr double beta = 4;     // 4   1
+constexpr int MAX_ANT_N = 30;  // 50
+constexpr double alpha = 1;  // 0.8 1
+constexpr double beta = 2;     // 4   1
 constexpr double Q = 100;      // 100
 constexpr double P = 0.8;      // 0.8
 
