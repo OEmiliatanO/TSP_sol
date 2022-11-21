@@ -1,6 +1,6 @@
 CC:=g++
 FLAG:=-Wall -Wextra
-OPT:=-Ofast
+OPT:=-O3
 
 debug: main.cpp
 	$(CC) $(FLAG) -D DEBUGing -g -c main.cpp

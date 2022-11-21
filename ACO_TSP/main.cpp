@@ -123,10 +123,10 @@ void pheroUpdate(int n, double p = P)
 {
 	for (int i = 1; i <= n; ++i)
 	{
-		for (int j = 1; j <= n; ++j)
+		for (int j = i+1; j <= n; ++j)
 		{
-			phero[i][j] = p * phero[i][j] + dphero[i][j];
-			dphero[i][j] = pheromone_init;
+			phero[i][j] = phero[j][i] = p * phero[i][j] + dphero[i][j];
+			dphero[i][j] = 0;
 		}
 	}
 }
@@ -136,7 +136,7 @@ void init(int n)
 	memset(dphero, 0, sizeof(dphero));
 	for (int i = 0; i <= n; ++i)
 		for (int j = 0; j <= n; ++j)
-			phero[i][j] = 0.01;
+			phero[i][j] = pheromone_init;
 }
 
 ans_t ACO(const cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_N)
