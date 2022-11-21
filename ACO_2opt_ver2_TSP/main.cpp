@@ -11,7 +11,7 @@
 using int64 = long long;
 using city_t = std::tuple<int, int64, int64>;
 using cities_t = std::vector<city_t>;
-using ans_t = std::pair<double, cities_t>;
+using ans_t = std::pair<double, std::list<int>>;
 
 /*
 struct city
@@ -69,12 +69,12 @@ double dist(city_t& a, city_t& b)
 {
 	return sqrt( (std::get<1>(a) - std::get<1>(b))*(std::get<1>(a) - std::get<1>(b)) + (std::get<2>(a) - std::get<2>(b))*(std::get<2>(a) - std::get<2>(b)));
 }
-void generateSol(int n, int ant_n, cities_t& cities, ans_t& best_sol)
+void generateSol(int n, int ant_n, ans_t& best_sol)
 {
 	std::uniform_int_distribution<int> unid(1, n);
 	std::uniform_real_distribution<double> runid(0, 1);
 	std::vector<std::pair<int, double>> prob;
-	std::pair<double, std::list<int>> ant_sol;
+	ans_t ant_sol;
 	for (int k = 0; k < ant_n; ++k)
 	{
 		ant_sol.first = 0;
@@ -154,10 +154,7 @@ void generateSol(int n, int ant_n, cities_t& cities, ans_t& best_sol)
 		if (best_sol.first > ant_sol.first)
 		{
 			best_sol.first = ant_sol.first;
-			best_sol.second.resize(n);
-			int i = 0;
-			for (auto& city : ant_sol.second)
-				best_sol.second[i++] = cities[city];
+			best_sol.second.swap(ant_sol.second);
 		}
 	}
 }
@@ -181,17 +178,18 @@ void init(int n)
 			phero[i][j] = 1.0;
 }
 
-ans_t ACO(cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_N)
+ans_t ACO(const cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_N)
 {
-	ans_t best_sol{std::numeric_limits<double>::infinity(), cities_t{}};
+	ans_t best_sol{std::numeric_limits<double>::infinity(), std::list{0}};
 	double avg = 0;
 	for (int i = 0; i < n; ++i)
 	{
 		init(cities.size());
 		for (int j = 0; j < t; ++j)
 		{
-			generateSol(cities.size() - 1, ant_n, cities, best_sol);
+			generateSol(cities.size() - 1, ant_n, best_sol);
 			pheroUpdate(cities.size() - 1);
+
 			std::cerr << '\r' << std::fixed << (double) (j+i*t+1)*100/(t*n) << '%';
 		}
 		avg += best_sol.first;
@@ -215,14 +213,8 @@ int main()
 
 	memset(d, 0, sizeof(d));
 	for (size_t i = 1; i <= cities.size()-1; ++i)
-	{
 		for (size_t j = 1; j <= cities.size()-1; ++j)
-		{
 			d[i][j] = dist(cities[i], cities[j]);
-			//std::cout << d[i][j] << ' ';
-		}
-		//std::cout << '\n';
-	}
 
 	ans_t ans = ACO(cities, 30, 1000);
 
@@ -232,11 +224,11 @@ int main()
 	std::cout << "the minimal length is " << ans.first << '\n';
 	for (auto& cy : ans.second)
 	{
-		std::cout << std::get<0>(cy) << '\n';
-		plottxt << std::get<0>(cy) << " " << std::get<1>(cy) << " " << std::get<2>(cy) << '\n';
+		std::cout << std::get<0>(cities[cy]) << '\n';
+		plottxt << std::get<0>(cities[cy]) << " " << std::get<1>(cities[cy]) << " " << std::get<2>(cities[cy]) << '\n';
 	}
 	if (ans.second.size())
-		plottxt << std::get<0>(ans.second[0]) << " " << std::get<1>(ans.second[0]) << " " << std::get<2>(ans.second[0]) << '\n';
+		plottxt << std::get<0>(cities[ans.second.front()]) << " " << std::get<1>(cities[ans.second.front()]) << " " << std::get<2>(cities[ans.second.front()]) << '\n';
 	plottxt.close();
 	return 0;
 }
