@@ -11,7 +11,7 @@
 using int64 = long long;
 using city_t = std::tuple<int, int64, int64>;
 using cities_t = std::vector<city_t>;
-using ans_t = std::pair<double, cities_t>;
+using ans_t = std::pair<double, std::list<int>>;
 
 /*
 struct city
@@ -65,11 +65,11 @@ int choose_city(std::vector<std::pair<int, double>>& prob)
 	exit(0);
 }
 
-double dist(city_t& a, city_t& b)
+double dist(const city_t& a, const city_t& b)
 {
 	return sqrt( (std::get<1>(a) - std::get<1>(b))*(std::get<1>(a) - std::get<1>(b)) + (std::get<2>(a) - std::get<2>(b))*(std::get<2>(a) - std::get<2>(b)));
 }
-void generateSol(int n, int ant_n, cities_t& cities, ans_t& best_sol)
+void generateSol(int n, int ant_n, ans_t& best_sol)
 {
 	std::uniform_int_distribution<int> unid(1, n);
 	std::vector<std::pair<int, double>> prob;
@@ -146,16 +146,17 @@ void generateSol(int n, int ant_n, cities_t& cities, ans_t& best_sol)
 			std::reverse(std::next(ant_sol.second.begin(), swap_pair.first), std::next(ant_sol.second.begin(), swap_pair.second+1));
 		
 		for (auto it = ant_sol.second.begin(); std::next(it, 1) != ant_sol.second.end(); ++it)
+		{
 			dphero[*it][*std::next(it, 1)] += Q/ant_sol.first;
+			dphero[*std::next(it, 1)][*it] += Q/ant_sol.first;
+		}
 		dphero[ant_sol.second.back()][ant_sol.second.front()] += Q/ant_sol.first;
+		dphero[ant_sol.second.front()][ant_sol.second.back()] += Q/ant_sol.first;
 		
 		if (best_sol.first > ant_sol.first)
 		{
 			best_sol.first = ant_sol.first;
-			best_sol.second.resize(n);
-			int i = 0;
-			for (auto& city : ant_sol.second)
-				best_sol.second[i++] = cities[city];
+			best_sol.second.swap(ant_sol.second);
 		}
 	}
 }
@@ -179,17 +180,18 @@ void init(int n)
 			phero[i][j] = 1.0;
 }
 
-ans_t ACO(cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_N)
+ans_t ACO(const cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_N)
 {
-	ans_t best_sol{std::numeric_limits<double>::infinity(), cities_t{}};
+	ans_t best_sol{std::numeric_limits<double>::infinity(), std::list{0}};
 	double avg = 0;
 	for (int i = 0; i < n; ++i)
 	{
 		init(cities.size());
 		for (int j = 0; j < t; ++j)
 		{
-			generateSol(cities.size() - 1, ant_n, cities, best_sol);
+			generateSol(cities.size() - 1, ant_n, best_sol);
 			pheroUpdate(cities.size() - 1);
+
 			std::cerr << '\r' << std::fixed << (double) (j+i*t+1)*100/(t*n) << '%';
 		}
 		avg += best_sol.first;
@@ -230,11 +232,11 @@ int main()
 	std::cout << "the minimal length is " << ans.first << '\n';
 	for (auto& cy : ans.second)
 	{
-		std::cout << std::get<0>(cy) << '\n';
-		plottxt << std::get<0>(cy) << " " << std::get<1>(cy) << " " << std::get<2>(cy) << '\n';
+		std::cout << std::get<0>(cities[cy]) << '\n';
+		plottxt << std::get<0>(cities[cy]) << " " << std::get<1>(cities[cy]) << " " << std::get<2>(cities[cy]) << '\n';
 	}
 	if (ans.second.size())
-		plottxt << std::get<0>(ans.second[0]) << " " << std::get<1>(ans.second[0]) << " " << std::get<2>(ans.second[0]) << '\n';
+		plottxt << std::get<0>(cities[ans.second.front()]) << " " << std::get<1>(cities[ans.second.front()]) << " " << std::get<2>(cities[ans.second.front()]) << '\n';
 	plottxt.close();
 	return 0;
 }
