@@ -200,7 +200,7 @@ ans_t ACO(const cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_
 	return best_sol;
 }
 
-int main()
+int main(int argc, char *argv[])
 {
 	size_t n;
 	int64 x, y;
@@ -209,6 +209,11 @@ int main()
 	while(std::cin >> n >> x >> y)
 		cities.emplace_back(n, x, y);
 	
+	int tot_run = 30, tot_iter = 1000;
+	if (argc >= 2) sscanf(argv[1], "%d", &tot_run);
+	if (argc >= 3) sscanf(argv[2], "%d", &tot_iter);
+	std::cerr << "run: " << tot_run << '\n' << "iter: " << tot_iter << '\n';
+
 	std::sort(cities.begin(), cities.end());
 
 	memset(d, 0, sizeof(d));
@@ -216,7 +221,7 @@ int main()
 		for (size_t j = 1; j <= cities.size()-1; ++j)
 			d[i][j] = dist(cities[i], cities[j]);
 
-	ans_t ans = ACO(cities, 30, 1000);
+	ans_t ans = ACO(cities, tot_run, tot_iter);
 
 	std::fstream plottxt;
 	plottxt.open("plot.txt", std::ios::out);

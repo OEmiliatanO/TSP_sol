@@ -79,7 +79,7 @@ ans_t DP_solve(cities_t& cities)
 	return std::make_pair(ans, ans_ct);
 }
 
-int main([[maybe_unused]] int argc, [[maybe_unused]] char **argv)
+int main()
 {
 	int n, x, y;
  	cities_t cities;

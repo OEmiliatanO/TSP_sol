@@ -13,11 +13,11 @@ using ans_t = std::pair<double, std::vector<int>>;
 
 constexpr int MAXN = 64; // maximum city number
 
-constexpr int MAX_ANT_N = 50;  // 50
-constexpr double alpha = 1;    // 0.8 1
+constexpr int MAX_ANT_N = 40;  // 50
+constexpr double alpha = 1.4;    // 0.8 1
 constexpr double beta = 2;     // 4   1
-constexpr double Q = 100;      // 100
-constexpr double P = 0.8;      // 0.8
+constexpr double Q = 0.9;      // 100
+constexpr double P = 0.9;      // 0.8
 constexpr double pheromone_init = 0.001;
 
 double d[MAXN + 1][MAXN + 1];       // d[i][j] := distance between city i, j
