@@ -1,4 +1,4 @@
-# TSP_sol
+# Solution to TSP
 Many distinct solution to TSP.
 ## brute force
 Enumerate all the possible path.
