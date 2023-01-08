@@ -14,7 +14,7 @@ using ans_t = std::pair<double, std::vector<int>>;
 constexpr int MAXN = 64; // maximum city number
 
 constexpr int MAX_ANT_N = 40;  // 50
-constexpr double alpha = 1.4;    // 0.8 1
+constexpr double alpha = 1;    // 1 in ACS
 constexpr double beta = 2;     // 4   1
 constexpr double Q = 0.9;      // 100
 constexpr double P = 0.9;      // 0.8
@@ -30,6 +30,13 @@ std::mt19937 mt(rd());
 // an ant choose which city to go next
 int choose_city(std::vector<std::pair<int, double>>& prob) // prob: [{city, probability}, ..., {city, probability}]
 {
+	std::uniform_real_distribution<double> qgen(0.0, 1.0);
+	if (qgen(mt) <= q0)
+	{
+		auto nex_city = std::max_element(prob.begin(), prob.end(), [&](auto& lhs, auto& rhs){ return (lhs.second > rhs.second ? lhs : rhs); });
+		return nex_city.first;
+	}
+
 	if (prob.size() <= 0)
 	{
 		std::cerr << "error in choose_city\nprob.size <= 0\n";
