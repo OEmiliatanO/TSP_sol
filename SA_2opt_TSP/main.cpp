@@ -122,7 +122,8 @@ int main()
 	while(std::cin >> n >> x >> y)
 		cities.emplace_back(n, x, y);
 
-/*** thread version
+#ifndef RECORD
+	/*** thread version ***/
 	std::vector<ans_t> ansPool;
 	std::vector< std::future<ans_t> > threadPool(5);
 
@@ -132,9 +133,12 @@ int main()
 		ansPool.emplace_back(it.get());
 
 	sort(ansPool.begin(), ansPool.end());
-***/
-
+	
+	const ans_t& ans = *ansPool.begin();
+#else
 	const ans_t ans = SA(cities);
+#endif
+
 	std::fstream plottxt;
 	plottxt.open("plot.txt", std::ios::out);
 
