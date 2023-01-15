@@ -28,9 +28,25 @@ After an ant find a path, try to reverse random path, recording the shorest path
 ref: M. Dorigo and L. M. Gambardella, "Ant colony system: a cooperative learning approach to the traveling salesman problem," in IEEE Transactions on Evolutionary Computation, vol. 1, no. 1, pp. 53-66, April 1997, doi: 10.1109/4235.585892.
 
 ## HOW TO USE
+normal mode:  
 ```
 $ cd XXX_TSP
 $ make dep all clean
 $ cat testdata/XXX | ./main
 $ make plot
+```
+
+debug mode:  
+```
+$ cd XXX_TSP
+$ make debug all clean
+$ cat testdata/XXX | ./main
+```
+
+record mode (record how the method find the answer, only apply on SA/ACO/ACS):
+```
+$ cd XXX_TSP
+$ make record all clean
+$ cat testdata/XXX | ./main
+$ python3 visualize.py
 ```
