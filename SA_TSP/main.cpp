@@ -75,7 +75,7 @@ ans_t SA(const cities_t& cities)
 				if (minE > Enex)
 				{
 					minE = Enex;
-					best.swap(nex);
+					best = current;
 				}
 			}
 		}
