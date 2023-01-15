@@ -27,6 +27,12 @@ struct city
 std::random_device rd;
 std::mt19937 mt(rd());
 std::uniform_real_distribution<double> unid(0.0, 1.0);
+constexpr int MAXIter = (int)1e3;
+constexpr double Rt = 0.97;
+constexpr double EndT = 1e-4;
+constexpr double InitT = 1e4;
+constexpr double Thre = 1 / InitT;
+constexpr double K = 1.0;
 
 double dist(const city_t& c1, const city_t& c2)
 {
@@ -49,18 +55,13 @@ cities_t rdChange(const cities_t& vec)
 	return res;
 }
 
-constexpr int MAXIter = (int)1e3;
-constexpr double Rt = 0.97;
-constexpr double EndT = 1e-4;
-constexpr double InitT = 1e4;
-constexpr double Thre = 1 / InitT;
 ans_t SA(const cities_t& cities)
 {
 	cities_t current(cities), best(cities), nex;
 	double minE = std::numeric_limits<double>::infinity(), T = InitT;
 	auto willSwap = [&](const double dt) {
 		//return unid(mt) < Thre * T; 
-		return unid(mt) < exp(-dt / T); 
+		return unid(mt) < exp(-dt / (K*T));
 	};
 	while (T > EndT)
 	{
