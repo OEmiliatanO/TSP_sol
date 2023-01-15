@@ -175,6 +175,14 @@ ans_t ACO(const cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_
 	double avg = 0;
 	init(n, cities);
 	// n runs
+#ifdef RECORD
+	n = 1;
+	std::fstream frecord;
+	std::vector<std::tuple<double, double, cities_t>> vrecord;
+	frecord.open("record.txt", std::ios::out);
+	frecord << cities.size()-1 << ' ' << t << '\n';
+#endif
+
 	for (int i = 0; i < n; ++i)
 	{
 		init(cities.size() - 1, cities);
@@ -182,12 +190,18 @@ ans_t ACO(const cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_
 		{
 			generateSol(cities.size() - 1, ant_n, best_sol);
 			gobal_phero_update(best_sol);
+#ifdef RECORD
+			frecord << j << ' ' << best_sol.first << '\n';
+			for (auto& cy : best_sol.second)
+				frecord << std::get<1>(cities[cy]) << ' ' << std::get<2>(cities[cy]) << '\n';
+			frecord << std::get<1>(cities[best_sol.second.front()]) << ' ' << std::get<2>(cities[best_sol.second.front()]) << '\n';
+#endif
 
 			std::cerr << '\r' << std::fixed << (double) (j+i*t+1)*100/(t*n) << '%';
 		}
 		avg += best_sol.first;
 	}
-	avg /= 30;
+	avg /= n;
 	std::cerr << '\n';
 	std::cout << "avg = " << avg << '\n';
 	return best_sol;
