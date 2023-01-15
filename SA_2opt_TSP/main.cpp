@@ -70,6 +70,12 @@ ans_t SA(const cities_t& cities)
 		//return unid(mt) < Thre * T; 
 		return unid(mt) < exp(-dt / (K*T)); 
 	};
+#ifdef RECORD
+	std::fstream frecord;
+	std::vector<std::tuple<double, double, cities_t>> vrecord;
+	frecord.open("record.txt", std::ios::out);
+	int count = 0;
+#endif
 	while (T > EndT)
 	{
 		for(int _ = 0; _ < MAXIter; ++_)
@@ -84,11 +90,28 @@ ans_t SA(const cities_t& cities)
 				{
 					minE = Enex;
 					best = current;
+#ifdef RECORD
+					vrecord.emplace_back(T, minE, best);
+					++count;
+#endif
 				}
 			}
 		}
 		T *= Rt;
 	}
+#ifdef RECORD
+	frecord << cities.size() << ' ' << count << '\n';
+	for (auto& it : vrecord)
+	{
+		frecord << std::get<0>(it) << ' ' << std::get<1>(it) << '\n';
+		auto& cities = std::get<2>(it);
+		for (auto& city : cities)
+			frecord << std::get<1>(city) << ' ' << std::get<2>(city) << '\n';
+		frecord << std::get<1>(cities.front()) << ' ' << std::get<2>(cities.front()) << '\n';
+	}
+	frecord.close();
+#endif
+
 	return make_pair(minE, current);
 }
 
