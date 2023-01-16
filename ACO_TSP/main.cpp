@@ -13,16 +13,16 @@ using ans_t = std::pair<double, std::vector<int>>;
 
 constexpr int MAXN = 64; // maximum city number
 
-constexpr int MAX_ANT_N = 40;  // 50
-constexpr double alpha = 1.4;    // 0.8 1
-constexpr double beta = 2;     // 4   1
-constexpr double Q = 0.9;      // 100
-constexpr double P = 0.9;      // 0.8
-constexpr double pheromone_init = 0.001;
+constexpr int ANT_N = 40;
+constexpr double alpha = 1.4;
+constexpr double beta = 2;
+constexpr double Q = 0.9;
+constexpr double rho = 0.1;
+constexpr double tau0 = 0.001;
 
-double d[MAXN + 1][MAXN + 1];       // d[i][j] := distance between city i, j
-double phero[MAXN + 1][MAXN + 1];   // pheromone (tau)
-double dphero[MAXN + 1][MAXN + 1];  // Delta pheromone (Delta tau)
+double d[MAXN + 1][MAXN + 1];     // d[i][j] := distance between city i, j
+double tau[MAXN + 1][MAXN + 1];   // pheromone
+double dtau[MAXN + 1][MAXN + 1];  // Delta pheromone
 
 std::random_device rd; 
 std::mt19937 mt(rd());
@@ -89,7 +89,7 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 				if ((1LL<<j) & vis) continue;
 				if (from == j) continue;
 				// calculate probability
-				prob.emplace_back(j, (pow(phero[from][j], alpha) * pow(1/d[from][j], beta)));
+				prob.emplace_back(j, (pow(tau[from][j], alpha) * pow(1/d[from][j], beta)));
 			}
 			
 			// choose a city to visit
@@ -105,11 +105,11 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 		// update the Delta pheromone
 		for (auto it = ant_sol.second.begin(); it+1 != ant_sol.second.end(); ++it)
 		{
-			dphero[*it][*(it+1)] += Q/ant_sol.first;
-			dphero[*(it+1)][*it] += Q/ant_sol.first;
+			dtau[*it][*(it+1)] += Q/ant_sol.first;
+			dtau[*(it+1)][*it] += Q/ant_sol.first;
 		}
-		dphero[ant_sol.second.back()][ant_sol.second.front()] += Q/ant_sol.first;
-		dphero[ant_sol.second.front()][ant_sol.second.back()] += Q/ant_sol.first;
+		dtau[ant_sol.second.back()][ant_sol.second.front()] += Q/ant_sol.first;
+		dtau[ant_sol.second.front()][ant_sol.second.back()] += Q/ant_sol.first;
 		
 		// update best solution
 		if (best_sol.first > ant_sol.first)
@@ -119,27 +119,27 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 		}
 	}
 }
-void pheroUpdate(int n, double p = P)
+void pheroUpdate(int n)
 {
 	for (int i = 1; i <= n; ++i)
 	{
 		for (int j = i+1; j <= n; ++j)
 		{
-			phero[i][j] = phero[j][i] = p * phero[i][j] + dphero[i][j];
-			dphero[i][j] = 0;
+			tau[i][j] = tau[j][i] = (1-rho) * tau[i][j] + rho * dtau[i][j];
+			dtau[i][j] = 0;
 		}
 	}
 }
 
 void init(int n)
 {
-	memset(dphero, 0, sizeof(dphero));
+	memset(dtau, 0, sizeof(dtau));
 	for (int i = 0; i <= n; ++i)
 		for (int j = 0; j <= n; ++j)
-			phero[i][j] = pheromone_init;
+			tau[i][j] = tau0;
 }
 
-ans_t ACO(const cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_N)
+ans_t ACO(const cities_t& cities, int n = 30, int t = 1000, int ant_n = ANT_N)
 {
 	ans_t best_sol{std::numeric_limits<double>::infinity(), std::vector<int>{}};
 	double avg = 0;
@@ -184,8 +184,6 @@ int main()
 		cities.emplace_back(n, x, y);
 	
 	std::sort(cities.begin(), cities.end());
-	//for (auto& it:cities)
-	//	std::cerr << "n=" << std::get<0>(it) << '\n';
 	
 	n = cities.size() - 1;
 	memset(d, 0, sizeof(d));
