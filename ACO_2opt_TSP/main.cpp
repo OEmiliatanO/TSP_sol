@@ -102,8 +102,6 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 
 		ant_sol.first += d[ant_sol.second.back()][ant_sol.second.front()];
 		
-		//for (auto it = ant_sol.second.begin(); it != ant_sol.second.end(); ++it);
-
 		// 2-opt
 		double opt_len = ant_sol.first;
 		std::pair<size_t, size_t> swap_pair{0, 0};
