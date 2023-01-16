@@ -23,7 +23,7 @@ struct city
 	city(): n(0), x(0), y(0) {}
 };*/
 
-constexpr int MAXN = 64;
+constexpr int MAXN = 2000;
 
 constexpr int ANT_N = 50;
 constexpr double alpha = 2;
@@ -75,12 +75,14 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 	std::uniform_real_distribution<double> runid(0, 1);
 	std::vector<std::pair<int, double>> prob;
 	ans_t ant_sol;
+	bool vis[MAXN]{};
 	for (int k = 0; k < ant_n; ++k)
 	{
 		ant_sol.first = 0;
 		ant_sol.second.clear();
 		ant_sol.second.emplace_back(unid(mt));
-		long long vis = (1LL << ant_sol.second.back());
+		memset(vis, 0, sizeof(vis));
+		vis[ant_sol.second.back()] = true;
 
 		while (ant_sol.second.size() < (size_t)n)
 		{
@@ -90,14 +92,14 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 
 			for (int j = 1; j <= n; ++j)
 			{
-				if ((1LL<<j) & vis) continue;
+				if (vis[j]) continue;
 				if (from == j) continue;
 				prob.emplace_back(j, (pow(tau[from][j], alpha) * pow(1/d[from][j], beta)));
 			}
 			int to = choose_city(prob);
 			ant_sol.second.emplace_back(to);
 			ant_sol.first += d[from][to];
-			vis |= (1LL<<to);
+			vis[to] = true;
 		}
 
 		ant_sol.first += d[ant_sol.second.back()][ant_sol.second.front()];

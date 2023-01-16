@@ -11,7 +11,7 @@ using city_t = std::tuple<int, int64, int64>;
 using cities_t = std::vector<city_t>;
 using ans_t = std::pair<double, std::vector<int>>;
 
-constexpr int MAXN = 64; // maximum city number
+constexpr int MAXN = 2000; // maximum city number
 
 constexpr int MAX_ANT_N = 20;
 constexpr double alpha = 0.1;
@@ -75,14 +75,17 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 
 	std::vector<std::pair<int, double>> prob;
 	ans_t ant_sol; // ans_t: {length, [city, ...]}
+	bool vis[MAXN]{};
 	for (int k = 0; k < ant_n; ++k)
 	{
+		memset(vis, 0, sizeof(vis));
 		ant_sol.first = 0;
 		ant_sol.second.clear();
 		ant_sol.second.emplace_back(unid(mt)); // choose random city to begin
 		
 		// if the i-th bit of "vis" is 1, this ant have visited there already
-		long long vis = (1LL << ant_sol.second.back());
+		// long long vis = (1LL << ant_sol.second.back());
+		vis[ant_sol.second.back()] = true;
 
 		while (ant_sol.second.size() < (size_t)n)
 		{
@@ -93,7 +96,7 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 			// find which city haven't been visited yet
 			for (int j = 1; j <= n; ++j)
 			{
-				if ((1LL<<j) & vis) continue;
+				if (vis[j]) continue;
 				if (from == j) continue;
 				// calculate probability
 				prob.emplace_back(j, (tau[from][j] * pow(1/d[from][j], beta)));
@@ -106,7 +109,7 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 			tau[ant_sol.second.back()][to] = tau[to][ant_sol.second.back()] = (1-rho)*tau[ant_sol.second.back()][to] + rho*tau0;
 			
 			ant_sol.second.emplace_back(to);
-			vis |= (1LL<<to);
+			vis[to] = true;
 			ant_sol.first += d[from][to];
 		}
 		// this ant have completed the journey
