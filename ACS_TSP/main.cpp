@@ -103,6 +103,9 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 			// choose a city to visit
 			int to = choose_city(prob);
 
+			// local update
+			phero[ant_sol.second.back()][to] = phero[to][ant_sol.second.back()] = (1-P)*phero[ant_sol.second.back()][to] + P*pheromone_init;
+			
 			ant_sol.second.emplace_back(to);
 			vis |= (1LL<<to);
 			ant_sol.first += d[from][to];
@@ -111,8 +114,6 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 		ant_sol.first += d[ant_sol.second.back()][ant_sol.second.front()];
 		
 		// local update
-		for (auto it = ant_sol.second.begin(); it+1 != ant_sol.second.end(); ++it)
-			phero[*it][*(it+1)] = phero[*(it+1)][*it] = (1-P) * phero[*it][*(it+1)] + P*pheromone_init;
 		phero[ant_sol.second.back()][ant_sol.second.front()] = phero[ant_sol.second.front()][ant_sol.second.back()] = \
 			(1-P) * phero[ant_sol.second.back()][ant_sol.second.front()] + P*pheromone_init;
 
