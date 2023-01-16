@@ -114,10 +114,11 @@ int main()
 	while(std::cin >> n >> x >> y)
 		cities.emplace_back(n, x, y);
 
+	double avg = 0;
 #ifndef RECORD
 	/*** thread version ***/
 	std::vector<ans_t> ansPool;
-	std::vector< std::future<ans_t> > threadPool(5);
+	std::vector< std::future<ans_t> > threadPool(10);
 
 	for (auto& it : threadPool)
 		it = async(SA, cities);
@@ -125,15 +126,17 @@ int main()
 		ansPool.emplace_back(it.get());
 
 	sort(ansPool.begin(), ansPool.end());
-
+	for (auto& it : ansPool)
+		avg += it.first;
+	avg /= 10;
 	const ans_t& ans = *ansPool.begin();
 #else
 	const ans_t ans = SA(cities);
+	avg += ans.first;
 #endif
-
 	std::fstream plottxt;
 	plottxt.open("plot.txt", std::ios::out);
-	
+	std::cout << "avg: " << avg << '\n';
 	std::cout << "the minimal length is " << ans.first << '\n';
 	for (auto& it : ans.second)
 	{
