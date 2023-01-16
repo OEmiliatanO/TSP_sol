@@ -17,12 +17,11 @@ constexpr int MAX_ANT_N = 20;
 constexpr double alpha = 0.1;
 constexpr double beta = 2;
 constexpr double q0 = 0.9;
-constexpr double P = 0.1;
-double pheromone_init = 0.001; // shall be modified dynamically
+constexpr double rho = 0.1;
+double tau0 = 0.001; // shall be modified dynamically
 
 double d[MAXN + 1][MAXN + 1];       // d[i][j] := distance between city i, j
-double phero[MAXN + 1][MAXN + 1];   // pheromone (tau)
-double dphero[MAXN + 1][MAXN + 1];  // Delta pheromone (Delta tau)
+double tau[MAXN + 1][MAXN + 1];   // pheromone (tau)
 
 std::random_device rd; 
 std::mt19937 mt(rd());
@@ -97,14 +96,14 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 				if ((1LL<<j) & vis) continue;
 				if (from == j) continue;
 				// calculate probability
-				prob.emplace_back(j, (phero[from][j] * pow(1/d[from][j], beta)));
+				prob.emplace_back(j, (tau[from][j] * pow(1/d[from][j], beta)));
 			}
 			
 			// choose a city to visit
 			int to = choose_city(prob);
 
 			// local update
-			phero[ant_sol.second.back()][to] = phero[to][ant_sol.second.back()] = (1-P)*phero[ant_sol.second.back()][to] + P*pheromone_init;
+			tau[ant_sol.second.back()][to] = tau[to][ant_sol.second.back()] = (1-rho)*tau[ant_sol.second.back()][to] + rho*tau0;
 			
 			ant_sol.second.emplace_back(to);
 			vis |= (1LL<<to);
@@ -114,8 +113,8 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 		ant_sol.first += d[ant_sol.second.back()][ant_sol.second.front()];
 		
 		// local update
-		phero[ant_sol.second.back()][ant_sol.second.front()] = phero[ant_sol.second.front()][ant_sol.second.back()] = \
-			(1-P) * phero[ant_sol.second.back()][ant_sol.second.front()] + P*pheromone_init;
+		tau[ant_sol.second.back()][ant_sol.second.front()] = tau[ant_sol.second.front()][ant_sol.second.back()] = \
+			(1-rho) * tau[ant_sol.second.back()][ant_sol.second.front()] + rho*tau0;
 
 		// update best solution
 		if (best_sol.first > ant_sol.first)
@@ -125,14 +124,14 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 		}
 	}
 }
-void gobal_phero_update(ans_t best_sol, double a = alpha)
+void gobal_phero_update(ans_t best_sol)
 {
 	for (auto it = best_sol.second.begin(); it+1 != best_sol.second.end(); ++it)
 	{
-		phero[*it][*(it+1)] = phero[*(it+1)][*it] = (1-a) * phero[*it][*(it+1)] + a / best_sol.first;
+		tau[*it][*(it+1)] = tau[*(it+1)][*it] = (1-alpha) * tau[*it][*(it+1)] + alpha / best_sol.first;
 	}
-	phero[best_sol.second.back()][best_sol.second.front()] = phero[best_sol.second.front()][best_sol.second.back()] = \
-		(1-a) * phero[best_sol.second.back()][best_sol.second.front()] + a / best_sol.first;
+	tau[best_sol.second.back()][best_sol.second.front()] = tau[best_sol.second.front()][best_sol.second.back()] = \
+		(1-alpha) * tau[best_sol.second.back()][best_sol.second.front()] + alpha / best_sol.first;
 }
 
 double GE(const cities_t& ct)
@@ -150,10 +149,6 @@ double GE(const cities_t& ct)
 				int64 x0 = std::get<1>(*ans_ct.rbegin()), x1 = std::get<1>(c1), x2 = std::get<1>(c2), y0 = std::get<2>(*ans_ct.rbegin()), y1 = std::get<2>(c1), y2 = std::get<2>(c2); 
 				return ((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1)) < ((x0 - x2) * (x0 - x2) + (y0 - y2) * (y0 - y2));
 			});
-#ifdef DEBUGing
-		std::cerr << "the nearest city to " << std::get<0>(*ans_ct.rbegin()) << " is " << std::get<0>(*(cities.begin() + ans_ct.size())) << '\n';
-		std::cerr << "the distance is " << dist(*ans_ct.rbegin(), *(cities.begin() + ans_ct.size())) << '\n';
-#endif
 		ans += dist(*ans_ct.rbegin(), *(cities.begin() + ans_ct.size()));
 		ans_ct.emplace_back(*(cities.begin() + ans_ct.size()));
 	}
@@ -164,10 +159,10 @@ double GE(const cities_t& ct)
 void init(int n, const cities_t& cities)
 {
 	double Lnn = GE(cities);
-	pheromone_init = 1/(n*Lnn);
+	tau0 = 1/(n*Lnn);
 	for (int i = 0; i <= n; ++i)
 		for (int j = 0; j <= n; ++j)
-			phero[i][j] = pheromone_init;
+			tau[i][j] = tau0;
 }
 
 ans_t ACO(const cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_N)
