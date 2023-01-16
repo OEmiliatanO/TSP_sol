@@ -18,7 +18,7 @@ constexpr double alpha = 0.1;
 constexpr double beta = 2;
 constexpr double q0 = 0.9;
 constexpr double rho = 0.1;
-double tau0 = 0.001; // shall be modified dynamically
+double tau0 = 0.001; // shall be modified dynamically later
 
 double d[MAXN + 1][MAXN + 1];       // d[i][j] := distance between city i, j
 double tau[MAXN + 1][MAXN + 1];   // pheromone (tau)
