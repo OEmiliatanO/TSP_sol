@@ -23,17 +23,17 @@ struct city
 	city(): n(0), x(0), y(0) {}
 };*/
 
-constexpr int MAXN = 64; // city
+constexpr int MAXN = 64;
 
-constexpr int MAX_ANT_N = 50;  // 50
-constexpr double alpha = 1;  // 0.8 1
-constexpr double beta = 2;     // 4   1
-constexpr double Q = 100;      // 100
-constexpr double P = 0.8;      // 0.8
-
+constexpr int ANT_N = 50;
+constexpr double alpha = 2;
+constexpr double beta = 2;
+constexpr double Q = 100;
+constexpr double rho = 0.5;
+constexpr double tau0 = 1.0;
 double d[MAXN + 1][MAXN + 1];
-double phero[MAXN + 1][MAXN + 1];
-double dphero[MAXN + 1][MAXN + 1];
+double tau[MAXN + 1][MAXN + 1];
+double dtau[MAXN + 1][MAXN + 1];
 
 std::random_device rd; 
 std::mt19937 mt(rd());
@@ -65,15 +65,16 @@ int choose_city(std::vector<std::pair<int, double>>& prob)
 	exit(0);
 }
 
-double dist(const city_t& a, const city_t& b)
+double dist(city_t& a, city_t& b)
 {
 	return sqrt( (std::get<1>(a) - std::get<1>(b))*(std::get<1>(a) - std::get<1>(b)) + (std::get<2>(a) - std::get<2>(b))*(std::get<2>(a) - std::get<2>(b)));
 }
 void generateSol(int n, int ant_n, ans_t& best_sol)
 {
 	std::uniform_int_distribution<int> unid(1, n);
+	std::uniform_real_distribution<double> runid(0, 1);
 	std::vector<std::pair<int, double>> prob;
-	std::pair<double, std::list<int>> ant_sol;
+	ans_t ant_sol;
 	for (int k = 0; k < ant_n; ++k)
 	{
 		ant_sol.first = 0;
@@ -91,7 +92,7 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 			{
 				if ((1LL<<j) & vis) continue;
 				if (from == j) continue;
-				prob.emplace_back(j, (pow(phero[from][j], alpha) * pow(1/d[from][j], beta)));
+				prob.emplace_back(j, (pow(tau[from][j], alpha) * pow(1/d[from][j], beta)));
 			}
 			int to = choose_city(prob);
 			ant_sol.second.emplace_back(to);
@@ -104,54 +105,55 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 		//for (auto it = ant_sol.second.begin(); it != ant_sol.second.end(); ++it);
 
 		// 2-opt
-		std::pair<size_t, size_t> swap_pair{0, 0};
 		double opt_len = ant_sol.first;
-		for (size_t i = 0; i < ant_sol.second.size(); ++i)
-			for (size_t j = i+1; j < ant_sol.second.size(); ++j)
+		std::pair<size_t, size_t> swap_pair{0, 0};
+		for (int t = 0; t < n; ++t)
+		{
+			double new_len = ant_sol.first;
+			size_t i = (ant_sol.second.size()-1) * runid(mt), j = (ant_sol.second.size()-1) * runid(mt);
+			if (i > j) std::swap(i, j);
+			if (i == 0 && j == ant_sol.second.size() - 1) continue;
+			if (i > 0)
 			{
-				double new_len = ant_sol.first;
-				if (i == 0 && j == ant_sol.second.size() - 1) continue;
-				if (i > 0)
-				{
-					new_len -= d[*std::next(ant_sol.second.begin(), i-1)][*std::next(ant_sol.second.begin(), i)];
-					new_len += d[*std::next(ant_sol.second.begin(), i-1)][*std::next(ant_sol.second.begin(), j)];
-				}
-				else
-				{
-					assert(i == 0);
-					new_len -= d[ant_sol.second.back()][*std::next(ant_sol.second.begin(), i)];
-					new_len += d[ant_sol.second.back()][*std::next(ant_sol.second.begin(), j)];
-				}
-
-				if (j+1 < ant_sol.second.size())
-				{
-					new_len -= d[*std::next(ant_sol.second.begin(), j)][*std::next(ant_sol.second.begin(), j+1)];
-					new_len += d[*std::next(ant_sol.second.begin(), i)][*std::next(ant_sol.second.begin(), j+1)];
-				}
-				else
-				{
-					assert(j == ant_sol.second.size()-1);
-					new_len -= d[*std::next(ant_sol.second.begin(), j)][ant_sol.second.front()];
-					new_len += d[*std::next(ant_sol.second.begin(), i)][ant_sol.second.front()];
-				}
-				if (new_len < opt_len)
-				{
-					swap_pair = std::make_pair(i, j);
-					opt_len = new_len;
-				}
+				new_len -= d[*std::next(ant_sol.second.begin(), i-1)][*std::next(ant_sol.second.begin(), i)];
+				new_len += d[*std::next(ant_sol.second.begin(), i-1)][*std::next(ant_sol.second.begin(), j)];
 			}
-		ant_sol.first = opt_len;
-		
+			else
+			{
+				assert(i == 0);
+				new_len -= d[ant_sol.second.back()][*std::next(ant_sol.second.begin(), i)];
+				new_len += d[ant_sol.second.back()][*std::next(ant_sol.second.begin(), j)];
+			}
+
+			if (j+1 < ant_sol.second.size())
+			{
+				new_len -= d[*std::next(ant_sol.second.begin(), j)][*std::next(ant_sol.second.begin(), j+1)];
+				new_len += d[*std::next(ant_sol.second.begin(), i)][*std::next(ant_sol.second.begin(), j+1)];
+			}
+			else
+			{
+				assert(j == ant_sol.second.size()-1);
+				new_len -= d[*std::next(ant_sol.second.begin(), j)][ant_sol.second.front()];
+				new_len += d[*std::next(ant_sol.second.begin(), i)][ant_sol.second.front()];
+			}
+			
+			if (opt_len > new_len)
+			{
+				opt_len = new_len;
+				swap_pair = std::make_pair(i, j);
+			}
+		}
 		if (swap_pair.first < swap_pair.second)
 			std::reverse(std::next(ant_sol.second.begin(), swap_pair.first), std::next(ant_sol.second.begin(), swap_pair.second+1));
+		ant_sol.first = opt_len;
 		
 		for (auto it = ant_sol.second.begin(); std::next(it, 1) != ant_sol.second.end(); ++it)
 		{
-			dphero[*it][*std::next(it, 1)] += Q/ant_sol.first;
-			dphero[*std::next(it, 1)][*it] += Q/ant_sol.first;
+			dtau[*it][*std::next(it, 1)] += Q/ant_sol.first;
+			dtau[*std::next(it, 1)][*it] += Q/ant_sol.first;
 		}
-		dphero[ant_sol.second.back()][ant_sol.second.front()] += Q/ant_sol.first;
-		dphero[ant_sol.second.front()][ant_sol.second.back()] += Q/ant_sol.first;
+		dtau[ant_sol.second.back()][ant_sol.second.front()] += Q/ant_sol.first;
+		dtau[ant_sol.second.front()][ant_sol.second.back()] += Q/ant_sol.first;
 		
 		if (best_sol.first > ant_sol.first)
 		{
@@ -160,30 +162,37 @@ void generateSol(int n, int ant_n, ans_t& best_sol)
 		}
 	}
 }
-void pheroUpdate(int n, double p = P)
+void pheroUpdate(int n)
 {
 	for (int i = 1; i <= n; ++i)
 	{
 		for (int j = 1; j <= n; ++j)
 		{
-			phero[i][j] = p * phero[i][j] + dphero[i][j];
-			dphero[i][j] = 0;
+			tau[i][j] = (1-rho) * tau[i][j] + rho * dtau[i][j];
+			dtau[i][j] = 0;
 		}
 	}
 }
 
 void init(int n)
 {
-	memset(dphero, 0, sizeof(dphero));
+	memset(dtau, 0, sizeof(dtau));
 	for (int i = 0; i <= n; ++i)
 		for (int j = 0; j <= n; ++j)
-			phero[i][j] = 1.0;
+			tau[i][j] = tau0;
 }
 
-ans_t ACO(const cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_N)
+ans_t ACO(const cities_t& cities, int n = 30, int t = 1000, int ant_n = ANT_N)
 {
 	ans_t best_sol{std::numeric_limits<double>::infinity(), std::list{0}};
 	double avg = 0;
+#ifdef RECORD
+	n = 1;
+	std::fstream frecord;
+	std::vector<std::tuple<double, double, cities_t>> vrecord;
+	frecord.open("record.txt", std::ios::out);
+	frecord << cities.size()-1 << ' ' << t << '\n';
+#endif
 	for (int i = 0; i < n; ++i)
 	{
 		init(cities.size());
@@ -191,12 +200,18 @@ ans_t ACO(const cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_
 		{
 			generateSol(cities.size() - 1, ant_n, best_sol);
 			pheroUpdate(cities.size() - 1);
+#ifdef RECORD
+			frecord << j << ' ' << best_sol.first << '\n';
+			for (auto& cy : best_sol.second)
+				frecord << std::get<1>(cities[cy]) << ' ' << std::get<2>(cities[cy]) << '\n';
+			frecord << std::get<1>(cities[best_sol.second.front()]) << ' ' << std::get<2>(cities[best_sol.second.front()]) << '\n';
+#endif
 
 			std::cerr << '\r' << std::fixed << (double) (j+i*t+1)*100/(t*n) << '%';
 		}
 		avg += best_sol.first;
 	}
-	avg /= 30;
+	avg /= n;
 	std::cerr << '\n';
 	std::cout << "avg = " << avg << '\n';
 	return best_sol;
@@ -215,14 +230,8 @@ int main()
 
 	memset(d, 0, sizeof(d));
 	for (size_t i = 1; i <= cities.size()-1; ++i)
-	{
 		for (size_t j = 1; j <= cities.size()-1; ++j)
-		{
 			d[i][j] = dist(cities[i], cities[j]);
-			//std::cout << d[i][j] << ' ';
-		}
-		//std::cout << '\n';
-	}
 
 	ans_t ans = ACO(cities, 30, 1000);
 
