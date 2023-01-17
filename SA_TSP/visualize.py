@@ -24,4 +24,4 @@ frames = []
 for t in range(T):
     img = imageio.v2.imread(f'./.record/p{t}.jpg')
     frames.append(img)
-imageio.mimsave('./record.gif', frames, fps = 3)
+imageio.mimsave('./record.gif', frames, fps = 4)
