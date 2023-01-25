@@ -104,7 +104,7 @@ ans_t SA(const cities_t& cities)
 	}
 	frecord.close();
 #endif
-	return make_pair(minE, current);
+	return make_pair(minE, best);
 }
 
 int main()
