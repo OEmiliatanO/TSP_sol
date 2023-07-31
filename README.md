@@ -5,7 +5,7 @@ Many distinct solution to TSP.
 Enumerate all the possible path.
 
 ### greedy
-Find the closet city. (not correct)
+Find the closet city. 
 
 ### dynamic programming
 Memorize the state. (I use bits to compress the state)
