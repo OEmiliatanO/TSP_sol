@@ -9,7 +9,7 @@ record: main.cpp
 dep: main.cpp
 	$(CC) $(FLAG) $(OPT) -c main.cpp
 all: main.o
-	$(CC) -o main main.o
+	$(CC) -o main.elf main.o
 plot: plot.txt
 	gnuplot plot.gp
 clean:main.o

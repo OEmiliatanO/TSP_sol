@@ -171,7 +171,7 @@ void init(int n, const cities_t& cities)
 ans_t ACO(const cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_N)
 {
 	ans_t best_sol{std::numeric_limits<double>::infinity(), std::vector<int>{}};
-	double avg = 0;
+	double avg = 0, squ = 0;
 	init(n, cities);
 	// n runs
 #ifdef RECORD
@@ -199,10 +199,12 @@ ans_t ACO(const cities_t& cities, int n = 30, int t = 1000, int ant_n = MAX_ANT_
 			std::cerr << '\r' << std::fixed << (double) (j+i*t+1)*100/(t*n) << '%';
 		}
 		avg += best_sol.first;
+		squ += best_sol.first * best_sol.first;
 	}
 	avg /= n;
+	auto std = sqrt(squ / n - avg * avg);
 	std::cerr << '\n';
-	std::cout << "avg = " << avg << '\n';
+	std::cout << "avg = " << avg << "±" << std << '\n';
 	return best_sol;
 }
 
