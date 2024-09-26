@@ -32,7 +32,7 @@ normal mode:
 ```
 $ cd XXX_TSP
 $ make dep all clean
-$ cat testdata/XXX | ./main
+$ cat testdata/XXX | ./main.elf
 $ make plot
 ```
 
@@ -40,13 +40,13 @@ debug mode:
 ```
 $ cd XXX_TSP
 $ make debug all clean
-$ cat testdata/XXX | ./main
+$ cat testdata/XXX | ./main.elf
 ```
 
 record mode (record how the method find the answer, only apply on SA/ACO/ACS):
 ```
 $ cd XXX_TSP
 $ make record all clean
-$ cat testdata/XXX | ./main
+$ cat testdata/XXX | ./main.elf
 $ python3 visualize.py
 ```
